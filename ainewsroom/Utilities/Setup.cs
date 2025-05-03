@@ -1,33 +1,58 @@
-﻿using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Data;
-using Microsoft.SemanticKernel.Plugins.Web.Tavily;
+﻿using Microsoft.SemanticKernel.Plugins.Web.Tavily;
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ainewsroom.Utilities
 {
-    public static class Setup
+
+    public class Setup
     {
-        public const string OAImodelId = "gpt-4.1";
-        public const string OAIapiKey = "";
-        public const string GEMINImodelId = "gemini-2.5-pro-preview-03-25";
-        public const string GEMINIapiKey = "";
+        private readonly IConfigurationRoot configRoot;
 
-        // Tavily plugin setup
-        #pragma warning disable SKEXP0050
-        public const string tavilyApiKey = "";
+        private TavilySettings tavily;
+        private OpenAISettings openAI;
 
-        public static TavilyTextSearchOptions tavilyOptions = new TavilyTextSearchOptions
+        public TavilySettings Tavily => this.tavily ??= this.GetSettings<TavilySettings>();
+        public OpenAISettings OpenAI => this.openAI ??= this.GetSettings<OpenAISettings>();
+
+
+#pragma warning disable SKEXP0050
+
+        public TavilyTextSearchOptions tavilyOptions => new TavilyTextSearchOptions
         {
-            Endpoint = new Uri("https://api.tavily.com/search"),
+            Endpoint = new Uri(Tavily.Uri),
             SearchDepth = TavilySearchDepth.Advanced,
             IncludeAnswer = true,
             //IncludeRawContent = true,
         };
 
+        public TSettings GetSettings<TSettings>() =>
+        this.configRoot.GetRequiredSection(typeof(TSettings).Name).Get<TSettings>()!;
+
+        public Setup()
+        {
+            this.configRoot =
+                new ConfigurationBuilder()
+                    .AddEnvironmentVariables()
+                    .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
+                    .Build();
+        }
+    }
+    public class TavilySettings
+    {
+        public string Uri { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
+        public TavilyTextSearchOptions Options => new TavilyTextSearchOptions
+        {
+            Endpoint = new Uri(Uri),
+            SearchDepth = TavilySearchDepth.Advanced,
+            IncludeAnswer = true,
+            //IncludeRawContent = true,
+        };
+    }
+    public class OpenAISettings
+    {
+        public string ChatModel { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
     }
 }

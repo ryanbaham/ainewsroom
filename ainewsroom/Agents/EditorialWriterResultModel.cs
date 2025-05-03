@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ainewsroom.Agents
 {
-    public class EditorialWriterResultModel
+    public class EditorialWriterResultModel : IAgentResult
     {
-
+        public string resultname => "EditorialResult";
         public string headline { get; set; }
         public string date { get; set; }
         public string lede { get; set; }

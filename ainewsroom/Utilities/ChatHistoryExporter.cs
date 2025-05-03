@@ -32,12 +32,15 @@ namespace ainewsroom.Utilities
 
             // 2️⃣ Convert each SK message
             var sb = new StringBuilder();
-            foreach (ChatMessageContent msg in history)
+            var sbmetadata = new StringBuilder();
+            foreach (ChatMessageContent msg in history.Reverse())
             {
+
                 string innerHtml = Markdown.ToHtml(msg.Content ?? string.Empty, pipeline);
                 sb.Append($$"""
-                <div class="msg {{msg.Role.Label}}">
-                <p>Actor: {{msg.Role.Label}}</p>
+                <div class="msg {{msg.AuthorName ?? msg.Role.Label}}">
+                <p>Actor: {{msg.AuthorName ?? msg.Role.Label}}</p>
+                {{sbmetadata}}
                 <hr>
                   {{innerHtml}}
                 </div>
@@ -64,7 +67,7 @@ namespace ainewsroom.Utilities
                           <main class="chat">
                             {{sb}}
                           </main>
-                        </body>
+                        </body> 
                         </html>
                         """;
 
@@ -98,6 +101,7 @@ namespace ainewsroom.Utilities
     .msg{max-width:80%;padding:.75rem 1rem;border-radius:12px;
          border:1px solid var(--border);word-wrap:break-word;}
     .msg.user{background:var(--bubble-user);margin-left:auto;}
+    .msg.assistant{background:var(--bubble-assistant);margin-right:auto;}
     .msg.assistant{background:var(--bubble-assistant);margin-right:auto;}
     .msg.system,.msg.tool{background:var(--bubble-assistant);margin-right:auto;
                           font-size:.9rem;color:#6a737d;text-align:left;}

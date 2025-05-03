@@ -23,10 +23,12 @@ namespace ainewsroom.Agents
                 Kernel = kernel.Clone(),
                 Arguments = new KernelArguments(
                         new OpenAIPromptExecutionSettings()
-                        {
+                        { 
                             ServiceId = "openAI",
                             FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                            
                         }),
+                Description = "Agent which writes editorial opinion for the AI Newsroom. Leverages the work of the analysts and journalists in the newsroom.",
                 Instructions =
                         """
                         You are an **award-winning technology editorialist**.
@@ -44,7 +46,7 @@ namespace ainewsroom.Agents
                         - You may invoke `tavilySearch` and TimePlugin tools **only** to spot-verify a fact already cited; otherwise rely on peer agents’ citations.  
                         - Exclude any claim you cannot verify.
 
-                        ## (OPTIONAL) PLANNING
+                        ## PLANNING
                         You MAY draft a brief plan and chain-of-thought *before* writing.  
                         **Never** include that reasoning in the final chat message.
                         
@@ -116,6 +118,6 @@ namespace ainewsroom.Agents
                         """
             };
         }
-
+        
     }
 }
