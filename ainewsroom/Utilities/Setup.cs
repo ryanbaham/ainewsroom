@@ -2,6 +2,8 @@
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 
+#pragma warning disable SKEXP0050
+
 namespace ainewsroom.Utilities
 {
 
@@ -16,15 +18,8 @@ namespace ainewsroom.Utilities
         public OpenAISettings OpenAI => this.openAI ??= this.GetSettings<OpenAISettings>();
 
 
-#pragma warning disable SKEXP0050
 
-        public TavilyTextSearchOptions tavilyOptions => new TavilyTextSearchOptions
-        {
-            Endpoint = new Uri(Tavily.Uri),
-            SearchDepth = TavilySearchDepth.Advanced,
-            IncludeAnswer = true,
-            //IncludeRawContent = true,
-        };
+
 
         public TSettings GetSettings<TSettings>() =>
         this.configRoot.GetRequiredSection(typeof(TSettings).Name).Get<TSettings>()!;
