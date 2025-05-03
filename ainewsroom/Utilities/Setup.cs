@@ -17,10 +17,6 @@ namespace ainewsroom.Utilities
         public TavilySettings Tavily => this.tavily ??= this.GetSettings<TavilySettings>();
         public OpenAISettings OpenAI => this.openAI ??= this.GetSettings<OpenAISettings>();
 
-
-
-
-
         public TSettings GetSettings<TSettings>() =>
         this.configRoot.GetRequiredSection(typeof(TSettings).Name).Get<TSettings>()!;
 
