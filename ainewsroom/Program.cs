@@ -83,7 +83,7 @@ namespace ainewsroom
 
             Console.WriteLine("Onboarding Agents.........");
             ResearchAnalyst researchAnalyst = new ResearchAnalyst(kernel);
-            EditorialWriter editorialWriter = new EditorialWriter(kernel);
+            EditorialWriter editorialWriter = new EditorialWriter(kernel,Setup);
 
             TechJournalist techJournalist = new TechJournalist(kernel);
 

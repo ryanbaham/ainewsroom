@@ -13,9 +13,11 @@ namespace ainewsroom.Utilities
 
         private TavilySettings tavily;
         private OpenAISettings openAI;
+        private Dictionary<string,string> prompts;
 
         public TavilySettings Tavily => this.tavily ??= this.GetSettings<TavilySettings>();
         public OpenAISettings OpenAI => this.openAI ??= this.GetSettings<OpenAISettings>();
+        public Dictionary<string, string> Prompts => this.prompts ??= this.LoadPrompts();
 
         public TSettings GetSettings<TSettings>() =>
         this.configRoot.GetRequiredSection(typeof(TSettings).Name).Get<TSettings>()!;
@@ -27,7 +29,59 @@ namespace ainewsroom.Utilities
                     .AddEnvironmentVariables()
                     .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
                     .Build();
+            LoadPrompts();
+           
         }
+
+        public string GetPrompt(string promptName)
+        {
+            if (this.prompts.ContainsKey(promptName))
+            {
+                return this.prompts[promptName];
+            }
+            var prompt = this.configRoot.GetRequiredSection(promptName).Value;
+            if (string.IsNullOrEmpty(prompt))
+            {
+                throw new ArgumentException($"Prompt {promptName} not found in configuration.");
+            }
+            this.prompts[promptName] = prompt;
+            return prompt;
+        }
+
+        private Dictionary<string, string> LoadPrompts()
+        {
+            var prompts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            string promptsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Prompts");
+
+            if (!Directory.Exists(promptsDirectory))
+            {
+                Directory.CreateDirectory(promptsDirectory);
+                Console.WriteLine($"[Setup: Prompts Directory] = {promptsDirectory}");
+                return prompts;
+            }
+
+            string[] promptFiles = Directory.GetFiles(promptsDirectory, "*.prompt");
+
+            foreach (string promptFile in promptFiles)
+            {
+                try
+                {
+                    string content = File.ReadAllText(promptFile);
+                    string promptName = Path.GetFileNameWithoutExtension(promptFile);
+                    prompts[promptName] = content;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading prompt file {promptFile}: {ex.Message}");
+                }
+            }
+
+            return prompts;
+        }
+
+
+
     }
     public class TavilySettings
     {
