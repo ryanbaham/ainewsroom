@@ -49,11 +49,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Templates\Newspaper.cshtml" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <Content Include="Templates\Newspaper.cshtml">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Templates\Newspaper-NYT.cshtml">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Templates\Newspaper - SideBySide.cshtml">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>

@@ -11,10 +11,10 @@ using ainewsroom.Utilities;
 
 namespace ainewsroom.Agents
 {
-    public class EditorialWriter
+    public class MarketAnalyst
     {
         public ChatCompletionAgent Agent { get; set; }
-        public EditorialWriter(Kernel kernel)
+        public MarketAnalyst(Kernel kernel)
         {
             Agent =
             new()
@@ -23,11 +23,11 @@ namespace ainewsroom.Agents
                 Kernel = kernel.Clone(),
                 Arguments = new KernelArguments(
                         new OpenAIPromptExecutionSettings()
-                        { 
-                            ServiceId = "openAI",
+                        {
+                            ServiceId = "openAI_thinking",
                             FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
-                            ResponseFormat = typeof(EditorialWriterResultModel)
-                            
+                            ReasoningEffort = "high",
+                            ResponseFormat = "json",
                         }),
                 Description = "Agent which writes editorial opinion for the AI Newsroom. Leverages the work of the analysts and journalists in the newsroom.",
                 Instructions =
@@ -119,6 +119,6 @@ namespace ainewsroom.Agents
                         """
             };
         }
-        
+
     }
 }

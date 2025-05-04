@@ -15,314 +15,195 @@
         {
             int id;
             if (int.TryParse(match.Groups[1].Value, out id) && citations.ContainsKey(id))
-                return $"<a href=\"#citation-{id}\" class=\"text-blue-600 hover:underline\">[{id}]</a>";
+                return $"<a href=\"#citation-{id}\" class=\"text-brand hover:underline dark:text-brand\">[{id}]</a>";
             return match.Value;
         });
     }
 
     public Dictionary<int, string> CreateCitationDictionary(ainewsroom.Agents.JournalistCitation[] citations)
     {
-        if (citations == null) return new Dictionary<int, string>();
         var dict = new Dictionary<int, string>();
-        foreach (var citation in citations)
-        {
-            dict[citation.id] = citation.url;
-        }
+        if (citations == null) return dict;
+        foreach (var c in citations) dict[c.id] = c.url;
         return dict;
     }
-
     public Dictionary<int, string> CreateCitationDictionary(ainewsroom.Agents.Citation[] citations)
     {
-        if (citations == null) return new Dictionary<int, string>();
         var dict = new Dictionary<int, string>();
-        foreach (var citation in citations)
-        {
-            dict[citation.id] = citation.url;
-        }
+        if (citations == null) return dict;
+        foreach (var c in citations) dict[c.id] = c.url;
         return dict;
     }
 }
-
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full scroll-smooth antialiased">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empower A.I. Times - @Model.CurrentDate.ToString("yyyy-MM-dd")</title>
-    <script src="https://cdn.jsdelivr.net/npm/@@tailwindcss/browser@@4"></script>
-    <style>
-        /* Custom newspaper styles */
-        .newspaper-container {
-            column-count: 1;
-        }
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Generative Times – @Model.CurrentDate.ToString("yyyy-MM-dd")</title>
 
-        @@media (min-width: 768px) {
-            .newspaper-container {
-                column-count: 2;
-                column-gap: 2rem;
+    <!-- Tailwind via CDN for Razor rendering environments -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#0d9488'
+                        }s
+                    }
+                }
             }
         }
-
-        @@media (min-width: 1280px) {
-            .newspaper-container {
-                column-count: 3;
-                column-gap: 2.5rem;
-            }
-        }
-
-        .avoid-break {
-            break-inside: avoid;
-        }
-
-        .newspaper-headline {
-            column-span: all;
-        }
-
-        .editorial-section {
-            column-span: all;
-            background-color: #f9f9f9;
-            border-top: 3px solid #333;
-            border-bottom: 3px solid #333;
-            padding: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .citations-section {
-            column-span: all;
-            border-top: 1px solid #ddd;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-        }
-    </style>
+    </script>
 </head>
-<body class="bg-gray-100">
-    <div class="max-w-6xl mx-auto px-4 py-8 font-serif text-gray-900 bg-white shadow-lg my-8">
-        <!-- Newspaper Title -->
-        <header class="text-center mb-8 newspaper-headline">
-            <h1 class="text-6xl font-bold tracking-tight border-b-4 border-black pb-2 mb-2">EMPOWER A.I. TIMES</h1>
-            <p class="text-lg text-gray-600">Your daily AI newsroom - @Model.CurrentDate.ToString("MMMM dd, yyyy")</p>
+<body class="min-h-full bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <!-- Masthead -->
+        <header class="mb-12 text-center">
+            <h1 class="text-5xl sm:text-6xl font-extrabold tracking-tight uppercase">Generative Times</h1>
+            <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">@Model.CurrentDate.ToString("MMMM dd, yyyy")</p>
         </header>
 
-        <!-- Editorial Section (Featured prominently) -->
+        <!-- Editorial (featured full‑width card) -->
         @if (Model.EditorialResult != null)
         {
-            <section class="editorial-section mb-8">
-                <h2 class="text-3xl font-semibold mb-4 text-center">EDITORIAL</h2>
-                <article class="prose max-w-none">
-                    <h3 class="text-2xl font-bold text-center mb-4">@Model.EditorialResult.headline</h3>
-                    <p class="text-lg text-gray-700 italic text-center mb-6">@Model.EditorialResult.lede</p>
+            <section class="mb-12 rounded-2xl shadow-lg ring-1 ring-gray-200 dark:ring-gray-700 bg-white/80 dark:bg-gray-800 p-8">
+                <h2 class="text-2xl text-left font-semibold tracking-wide text-brand mb-6">Editorial</h2>
+                <h3 class="font-bold text-2xl sm:text-3xl mb-4 text-center">@Model.EditorialResult.headline</h3>
+                <p class="text-lg italic text-center mb-8">@Model.EditorialResult.lede</p>
 
-                    @if (!string.IsNullOrEmpty(Model.EditorialResult.body))
+                @if (!string.IsNullOrEmpty(Model.EditorialResult.body))
+                {
+                    var editorialCitations = CreateCitationDictionary(Model.EditorialResult.citations);
+                    foreach (var paragraph in Model.EditorialResult.body.Split("\n"))
                     {
-                        var editorialCitations = CreateCitationDictionary(Model.EditorialResult.citations);
-
-                        @foreach (var paragraph in Model.EditorialResult.body.Split("\n"))
-                        {
-                            <p class="mb-4">@(new HtmlString(ReplaceSourceIds(paragraph, editorialCitations)))</p>
-                        }
+                        <p class="prose prose-lg dark:prose-invert max-w-none mb-5">@(new HtmlString(ReplaceSourceIds(paragraph, editorialCitations)))</p>
                     }
+                }
 
-                    <p class="mt-6 font-semibold text-center">Call to Action: @(new HtmlString(ReplaceSourceIds(Model.EditorialResult.call_to_action, CreateCitationDictionary(Model.EditorialResult.citations))))</p>
-
-                    @if (Model.EditorialResult.citations != null && Model.EditorialResult.citations.Length > 0)
-                    {
-                        <div class="mt-4 text-sm">
-                            <p>Sources:</p>
-                            <ul class="list-disc list-inside">
-                                @foreach (var citation in Model.EditorialResult.citations)
-                                {
-                                    <li>
-                                        <a href="#citation-@citation.id" class="text-blue-600 hover:underline">[#@citation.id]</a>
-                                        @if (!string.IsNullOrEmpty(citation.url))
-                                        {
-                                            <a href="@citation.url" target="_blank" class="text-blue-600 hover:underline ml-2">@citation.url</a>
-                                        }
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                    }
-                </article>
+                <p class="mt-8 font-semibold text-center">Call to Action: @(new HtmlString(ReplaceSourceIds(Model.EditorialResult.call_to_action, CreateCitationDictionary(Model.EditorialResult.citations))))</p>
             </section>
         }
 
-        <!-- Main content in columns -->
-        <div class="newspaper-container">
-            <!-- Articles Section -->
+        <!-- Main Columns -->
+        <main class="space-y-16">
+            <!-- Tech Columns -->
             @if (Model.TechResult?.columns != null)
             {
                 var techCitations = CreateCitationDictionary(Model.TechResult.citations);
-
-                foreach (var article in Model.TechResult.columns)
-                {
-                    <article class="mb-8 avoid-break">
-                        <h2 class="text-2xl font-bold mb-2 border-b border-gray-300 pb-2">@article.headline</h2>
-                        <p class="text-sm text-gray-600 italic mb-4">@article.lede</p>
-                        @if (article.body != null)
-                        {
-                            foreach (var line in article.body)
+                <section id="news" class="pt-4 p-12 border-t border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-semibold mb-6">News</h2>
+                
+                <div class="columns-1 md:columns-2 xl:columns-3 gap-8 [column-fill:_balance]">
+                    @foreach (var article in Model.TechResult.columns)
+                    {
+                        <article class="break-inside-avoid mb-8">
+                            <h2 class="font-bold text-xl mb-2 border-b border-gray-300 dark:border-gray-600 pb-1">@article.headline</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 italic mb-4">@article.lede</p>
+                            @if (article.body != null)
                             {
-                                <p class="mb-3">@(new HtmlString(ReplaceSourceIds(line, techCitations)))</p>
-                            }
-                        }
-
-                        @if (article.source_ids != null && article.source_ids.Length > 0)
-                        {
-                            <p class="mt-2 text-xs">
-                                Sources:
-                                @foreach (var sourceId in article.source_ids)
+                                foreach (var line in article.body)
                                 {
-                                    <a href="#citation-@sourceId" class="text-blue-600 hover:underline">[#@sourceId]</a>
+                                    <p class="prose prose-sm dark:prose-invert max-w-none mb-4">@(new HtmlString(ReplaceSourceIds(line, techCitations)))</p>
                                 }
-                            </p>
-                        }
-                    </article>
-                }
+                            }
+                            @if (article.source_ids?.Length > 0)
+                            {
+                                <p class="mt-2 text-xs text-brand">
+                                    Sources:
+                                    @foreach (var id in article.source_ids)
+                                    {
+                                        <a href="#citation-@id" class="hover:underline">[@id]</a>
+                                    }
+                                </p>
+                            }
+                        </article>
+                    }
+                </div>
+                </section>
             }
 
-            <!-- Research Section -->
+            <!-- Research Themes (highlighted cards) -->
             @if (Model.ResearchResult?.themes != null)
             {
-                foreach (var theme in Model.ResearchResult.themes)
-                {
-                    <article class="mb-8 avoid-break bg-gray-50 p-4 border-l-4 border-gray-400">
-                        <h2 class="text-xl font-bold mb-2">@theme.theme <span class="text-gray-500">(Impact: @theme.impact_score)</span></h2>
-                        <p class="mb-4">@theme.summary</p>
-
-                        @if (theme.source_ids != null && theme.source_ids.Length > 0)
-                        {
-                            <p class="mt-2 text-xs">
-                                Sources:
-                                @foreach (var sourceId in theme.source_ids)
-                                {
-                                    <a href="#citation-@sourceId" class="text-blue-600 hover:underline">[#@sourceId]</a>
-                                }
-                            </p>
-                        }
-
-                        @if (theme.viewpoints != null)
-                        {
-                            <div class="mt-4 space-y-3">
-                                @foreach (var vp in theme.viewpoints)
-                                {
-                                    <blockquote class="pl-4 border-l-2 border-gray-300 italic text-gray-600">
-                                        "@vp.quote" — <span class="not-italic font-medium">@vp.stance</span>
-
-                                        @if (vp.source_ids != null && vp.source_ids.Length > 0)
-                                        {
-                                            <span class="text-xs not-italic block mt-1">
-                                                Sources:
-                                                @foreach (var sourceId in vp.source_ids)
-                                                {
-                                                    <a href="#citation-@sourceId" class="text-blue-600 hover:underline">[#@sourceId]</a>
-                                                }
-                                            </span>
-                                        }
-                                    </blockquote>
-                                }
-                            </div>
-                        }
-                    </article>
-                }
+                <section id="themes" class="pt-4 pb-4 p-12 border-t border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-semibold mb-6">Research Themes</h2>
+                <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-2">
+                    @foreach (var theme in Model.ResearchResult.themes)
+                    {
+                        <article class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+                            <h2 class="font-semibold text-lg mb-1">@theme.theme</h2>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Impact: @theme.impact_score</span>
+                            <p class="mt-4 text-sm leading-relaxed">@theme.summary</p>
+                            @if (theme.viewpoints != null)
+                            {
+                                <ul class="mt-4 space-y-3">
+                                    @foreach (var vp in theme.viewpoints)
+                                    {
+                                        <li class="text-sm">
+                                            <span class="font-medium capitalize">@vp.stance:</span> "@vp.quote"
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            @if (theme.source_ids?.Length > 0)
+                            {
+                                <p class="mt-3 text-xs text-brand">
+                                    Sources:
+                                    @foreach (var id in theme.source_ids)
+                                    {
+                                        <a href="#citation-@id" class="hover:underline mr-1">[@id]</a>
+                                    }
+                                </p>
+                            }
+                        </article>
+                    }
+                </div>
+                </section>
             }
-        </div>
 
-        <!-- Citations Section -->
-        <section class="citations-section">
-            <h2 class="text-2xl font-semibold mb-4">Citations</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @{
-                    // Create a comprehensive list of citations from all sources
-                    var allCitations = new List<object>();
-
-                    if (Model.ResearchResult?.citations != null)
-                    {
-                        foreach (var citation in Model.ResearchResult.citations)
-                        {
-                            allCitations.Add(new
-                            {
-                                id = citation.id,
-                                url = citation.url,
-                                title = citation.title,
-                                publisher = citation.publisher,
-                                date = citation.date,
-                                type = citation.type
-                            });
-                        }
+            <!-- Citations -->
+            <section id="citations" class="pt-12 border-t border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-semibold mb-6">Citations</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @{
+                        var all = new List<dynamic>();
+                        if (Model.ResearchResult?.citations != null) all.AddRange(Model.ResearchResult.citations);
+                        if (Model.TechResult?.citations != null) all.AddRange(Model.TechResult.citations);
+                        if (Model.EditorialResult?.citations != null) all.AddRange(Model.EditorialResult.citations);
+                        all = all.DistinctBy(c => c.id).OrderBy(c => c.id).ToList();
                     }
-
-                    if (Model.TechResult?.citations != null)
+                    @foreach (var c in all)
                     {
-                        foreach (var citation in Model.TechResult.citations)
-                        {
-                            allCitations.Add(new
+                        <div id="citation-@c.id" class="text-sm bg-white dark:bg-gray-800 p-6 rounded-xl shadow ring-1 ring-gray-200 dark:ring-gray-700 space-y-1 break-words">
+                            <span class="font-bold">#@c.id</span>
+                            @if (!string.IsNullOrEmpty(c.url))
                             {
-                                id = citation.id,
-                                url = citation.url,
-                                title = citation.title,
-                                publisher = citation.publisher,
-                                date = citation.date,
-                                type = citation.type
-                            });
-                        }
-                    }
-
-                    if (Model.EditorialResult?.citations != null)
-                    {
-                        foreach (var citation in Model.EditorialResult.citations)
-                        {
-                            allCitations.Add(new
+                                <a href="@c.url" target="_blank" class="ml-1 text-brand hover:underline break-all inline-block">@c.url</a>
+                            }
+                            @if (!string.IsNullOrEmpty(c.title))
                             {
-                                id = citation.id,
-                                url = citation.url,
-                                title = (string)null,
-                                publisher = (string)null,
-                                date = (string)null,
-                                type = (string)null
-                            });
-                        }
+                                <div class="mt-1">@c.title</div>
+                            }
+                            @if (!string.IsNullOrEmpty(c.publisher))
+                            {
+                                <div class="text-gray-600 dark:text-gray-400">@c.publisher</div>
+                            }
+                            @if (!string.IsNullOrEmpty(c.date))
+                            {
+                                <div class="text-gray-500 dark:text-gray-400">@c.date</div>
+                            }
+                        </div>
                     }
+                </div>
+            </section>
+        </main>
 
-                    // Order by ID
-                    allCitations = allCitations.OrderBy(c => ((dynamic)c).id).ToList();
-                }
-
-                @foreach (var citation in allCitations)
-                {
-                    dynamic c = citation;
-                    <div id="citation-@c.id" class="bg-white p-3 rounded shadow-sm border border-gray-200">
-                        <span class="font-bold">#@c.id</span> -
-                        @if (!string.IsNullOrEmpty(c.url))
-                        {
-                            <a href="@c.url" target="_blank" class="text-blue-600 hover:underline">
-                                @(string.IsNullOrEmpty(c.title) ? c.url : c.title)
-                            </a>
-                        }
-                        else if (!string.IsNullOrEmpty(c.title))
-                        {
-                            @c.title
-                        }
-                        @if (!string.IsNullOrEmpty(c.publisher))
-                        {
-                            <span class="block text-sm text-gray-600">@c.publisher</span>
-                        }
-                        @if (!string.IsNullOrEmpty(c.date))
-                        {
-                            <span class="block text-sm text-gray-500">@c.date</span>
-                        }
-                        @if (!string.IsNullOrEmpty(c.type))
-                        {
-                            <span class="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded mt-1">@c.type</span>
-                        }
-                    </div>
-                }
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="text-center text-sm text-gray-600 mt-12 pt-6 border-t border-gray-200">
-            © @Model.CurrentDate.Year Empower A.I. Times. All rights reserved.
+        <footer class="mt-20 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-6">
+            © @Model.CurrentDate.Year Generative Times. All rights reserved.
         </footer>
     </div>
 </body>
