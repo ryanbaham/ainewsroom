@@ -261,8 +261,9 @@ namespace ainewsroom
                     string html = await templateService.RenderNewspaperAsync(researchResult, techResult, editorialResult);
 
                     // Generate the report
-                    var path = ReportCreator.GenerateReport(html);
-                    Console.WriteLine($"[REPORT has been Generated] - {path} ");
+                    var path = await ReportCreator.GenerateReport(html,chat);
+                    Console.WriteLine($"[REPORT has been generated] - {path.reportPath} ");
+                    Console.WriteLine($"[History has been exported] - {path.historyPath} ");
                     continue;
                 }
 
