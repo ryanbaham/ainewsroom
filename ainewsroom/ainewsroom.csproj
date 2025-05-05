@@ -50,10 +50,18 @@
 
 	<ItemGroup>
 	  <None Remove="Prompts\EditorialWriter.prompt" />
+	  <None Remove="Prompts\ResearchAnalyst.prompt" />
+	  <None Remove="Prompts\TechJournalist.prompt" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Content Include="Prompts\EditorialWriter.prompt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Prompts\ResearchAnalyst.prompt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Prompts\TechJournalist.prompt">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="Templates\Newspaper.cshtml">

@@ -82,18 +82,15 @@ namespace ainewsroom
             Kernel kernel = builder.Build();
 
             Console.WriteLine("Onboarding Agents.........");
-            ResearchAnalyst researchAnalyst = new ResearchAnalyst(kernel);
-            EditorialWriter editorialWriter = new EditorialWriter(kernel,Setup);
-
-            TechJournalist techJournalist = new TechJournalist(kernel);
+            ResearchAnalyst researchAnalyst = new ResearchAnalyst(kernel, Setup);
+            EditorialWriter editorialWriter = new EditorialWriter(kernel, Setup);
+            TechJournalist techJournalist = new TechJournalist(kernel, Setup);
 
             var ResearchAgent = researchAnalyst.Agent;
             var JournalistAgent = techJournalist.Agent;
             var EditorialAgent = editorialWriter.Agent;
 
             Console.WriteLine("Enabling Agent Collaboration.........");
-
-
             KernelFunction selectionFunction =
             AgentGroupChat.CreatePromptFunctionForStrategy(
                  $$$"""
@@ -160,7 +157,7 @@ namespace ainewsroom
 
 
 
-            ChatHistorySummarizationReducer historyReducer = new(kernel.GetRequiredService<IChatCompletionService>("openAI"), 5);
+            ChatHistorySummarizationReducer historyReducer = new(kernel.GetRequiredService<IChatCompletionService>("openAI"), 20);
 
             AgentGroupChat chat =
                 new(ResearchAgent, JournalistAgent, EditorialAgent)
@@ -202,7 +199,7 @@ namespace ainewsroom
             
             foreach (Agent agent in chat.Agents)
             {
-                Console.WriteLine($"{agent.Name} [{agent.Id}] - {agent.Description}");
+                Console.WriteLine($"{agent.Name} - {agent.Description}");
             }
             Console.WriteLine("-------------------------");
 

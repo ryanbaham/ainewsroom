@@ -31,7 +31,7 @@ namespace ainewsroom.Agents
                             
                         }),
                 Description = "Writes editorial opinion for the AI newsroom. Utilizes the work of the analysts and journalists in the newsroom.",
-                Instructions = setup.Prompts[this.GetType().Name],
+                Instructions = setup.GetPrompt(this.GetType().Name),
                 //"""
                 //You are an **award-winning technology editorialist**.
 

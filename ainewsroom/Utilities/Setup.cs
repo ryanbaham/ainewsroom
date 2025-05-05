@@ -17,7 +17,7 @@ namespace ainewsroom.Utilities
 
         public TavilySettings Tavily => this.tavily ??= this.GetSettings<TavilySettings>();
         public OpenAISettings OpenAI => this.openAI ??= this.GetSettings<OpenAISettings>();
-        public Dictionary<string, string> Prompts => this.prompts ??= this.LoadPrompts();
+        //public Dictionary<string, string> Prompts => this.prompts ??= this.LoadPrompts();
 
         public TSettings GetSettings<TSettings>() =>
         this.configRoot.GetRequiredSection(typeof(TSettings).Name).Get<TSettings>()!;
@@ -35,17 +35,12 @@ namespace ainewsroom.Utilities
 
         public string GetPrompt(string promptName)
         {
-            if (this.prompts.ContainsKey(promptName))
+            if (this.prompts == null)
             {
-                return this.prompts[promptName];
+                this.prompts = LoadPrompts();
             }
-            var prompt = this.configRoot.GetRequiredSection(promptName).Value;
-            if (string.IsNullOrEmpty(prompt))
-            {
-                throw new ArgumentException($"Prompt {promptName} not found in configuration.");
-            }
-            this.prompts[promptName] = prompt;
-            return prompt;
+            try { return this.prompts[promptName]; }
+            catch { Console.WriteLine($"Prompt {promptName} not found."); return string.Empty; }
         }
 
         private Dictionary<string, string> LoadPrompts()
