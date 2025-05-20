@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ainewsroom.Utilities;
+using Microsoft.SemanticKernel.ChatCompletion;
 #pragma warning disable SKEXP0070
 namespace ainewsroom.Agents
 {
@@ -20,17 +21,20 @@ namespace ainewsroom.Agents
             Agent =
             new()
             {
-                Name = "ResearchAnalystAgent",
+                Name = "Research-Analyst-Agent",
                 Kernel = kernel.Clone(),
                 Arguments = new KernelArguments(
                         new OpenAIPromptExecutionSettings()
                         { 
-                            ServiceId = "openAI",
-                            FunctionChoiceBehavior =  FunctionChoiceBehavior.Auto()
-                            
+                            ServiceId = "openAI_thinking",
+                            FunctionChoiceBehavior =  FunctionChoiceBehavior.Auto(),
+                            ResponseFormat = typeof(ResearchAnalystResultModel),
+                            ReasoningEffort = "high"
+
                         }),
-                Description = "Agent which searches the web for source material and other journalism and then organizes into themes.",
+                Description = "Agent that searches the web for source material and other journalism and then organizes into themes.", 
                 Instructions = setup.GetPrompt(this.GetType().Name),
+                InstructionsRole = AuthorRole.Developer
             };
             
     }

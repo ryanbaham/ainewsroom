@@ -13,13 +13,14 @@ namespace ainewsroom.Agents
             Agent =
             new()
             {
-                Name = "TechJournalistAgent",
+                Name = "Tech-Journalist-Agent",
                 Kernel = kernel.Clone(),
                 Arguments = new KernelArguments(
                         new OpenAIPromptExecutionSettings()
                         {
                             ServiceId = "openAI",
-                            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+                            ResponseFormat = typeof(TechJournalistResultModel)
                         }),
                 Description = "Journalist that writes on technology topics.",
                 Instructions = setup.GetPrompt(this.GetType().Name),

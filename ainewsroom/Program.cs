@@ -34,17 +34,18 @@ namespace ainewsroom
             Console.WriteLine("Warming Up.........");
 
             Console.WriteLine("Configuring Plugins.........");
-            ITextSearch tavilySearch = new TavilyTextSearch(Setup.Tavily.ApiKey,Setup.Tavily.Options);
+            ITextSearch tavilySearch = new TavilyTextSearch(Setup.Tavily.ApiKey, Setup.Tavily.Options);
             var tavilyPlugin = tavilySearch.CreateWithGetTextSearchResults("TavilySearch");
 
             Console.WriteLine("Bootstrapping Kernel Instance.........");
-            
+
             // Create a kernel and attach core services
             var builder = Kernel.CreateBuilder()
                 .AddOpenAIChatCompletion(Setup.OpenAI.ChatModel, Setup.OpenAI.ApiKey, serviceId: "openAI")
-                .AddOpenAIChatCompletion("o4-mini", Setup.OpenAI.ApiKey, serviceId: "openAI_thinking");
-              //.AddGoogleAIGeminiChatCompletion(Setup.GEMINImodelId, Setup.GEMINIapiKey, serviceId: "gemini");
-            
+                .AddOpenAIChatCompletion("o4-mini", Setup.OpenAI.ApiKey, serviceId: "openAI_thinking",httpClient: new HttpClient() { Timeout = TimeSpan.FromMinutes(3)})
+                .AddOpenAIChatCompletion("gpt-4.5-preview", Setup.OpenAI.ApiKey, serviceId: "openAI_writing");
+                //.AddGoogleAIGeminiChatCompletion(Setup.GEMINImodelId, Setup.GEMINIapiKey, serviceId: "gemini");
+            //builder.Services.AddHttpClient("extended_timeout", c => { c.Timeout = TimeSpan.FromMinutes(3); });
             builder.Services.AddLogging(logging =>
             {
                 logging.ClearProviders();
@@ -66,11 +67,12 @@ namespace ainewsroom
                     LogDirectory = "logs",
                     FileName = "trace.log",
                     MinLevel = LogLevel.Trace
+
                 };
                 logging.AddProvider(new FileLoggerProvider(fileOpts));
                 logging.SetMinimumLevel(LogLevel.Trace);
 
-                
+
             });
             builder.Services.AddSingleton(sp => new HtmlRenderer(sp, sp.GetRequiredService<ILoggerFactory>()));
             builder.Services.AddScoped<BlazorRenderer>();
@@ -123,7 +125,7 @@ namespace ainewsroom
                     {{$lastmessage}}
                     """,
 
-                
+
             safeParameterNames: "lastmessage");
 
             const string TerminationToken = "[all-work-complete]";
@@ -144,7 +146,7 @@ namespace ainewsroom
 
 
 
-            ChatHistorySummarizationReducer historyReducer = new(kernel.GetRequiredService<IChatCompletionService>("openAI"), 20);
+            ChatHistorySummarizationReducer historyReducer = new(kernel.GetRequiredService<IChatCompletionService>("openAI"), 50);
 
             AgentGroupChat chat =
                 new(ResearchAgent, JournalistAgent, EditorialAgent)
@@ -153,7 +155,8 @@ namespace ainewsroom
                     {
                         SelectionStrategy =
                             new KernelFunctionSelectionStrategy(selectionFunction, kernel)
-                            { 
+                            {
+                                Arguments = new KernelArguments(new PromptExecutionSettings() { ServiceId = "openAI_thinking" }),
                                 // Start with this agent.
                                 InitialAgent = ResearchAgent,
                                 // Save tokens by only including the final response
@@ -162,10 +165,13 @@ namespace ainewsroom
                                 HistoryVariableName = "lastmessage",
                                 // Returns the entire result value as a string.
                                 //ResultParser = (result) => result.GetValue<string>() ?? ResearchAgent.Name
+
                             },
                         TerminationStrategy =
                             new KernelFunctionTerminationStrategy(terminationFunction, kernel)
                             {
+                                Arguments = new KernelArguments(new PromptExecutionSettings() { ServiceId = "openAI_thinking" }),
+
                                 // This agent has authority to end the activity
                                 Agents = [EditorialAgent],
                                 // Save tokens by only including the final response
@@ -173,7 +179,7 @@ namespace ainewsroom
                                 // The prompt variable name for the history argument.
                                 HistoryVariableName = "lastmessage",
                                 // Limit total number of turns
-                                MaximumIterations = 20,
+                                MaximumIterations = 30,
                                 // Customer result parser to determine if the response is "yes"
                                 ResultParser = (result) => result.GetValue<string>()?.Contains(TerminationToken, StringComparison.OrdinalIgnoreCase) ?? false
                             }
@@ -183,7 +189,7 @@ namespace ainewsroom
             Console.WriteLine("Newsroom Ready!");
             Console.WriteLine("-------------------------");
             Console.WriteLine("Available Agents:");
-            
+
             foreach (Agent agent in chat.Agents)
             {
                 Console.WriteLine($"{agent.Name} - {agent.Description}");
@@ -192,7 +198,7 @@ namespace ainewsroom
 
 
             var reportobjectlist = new List<IAgentResult>();
-            
+
             bool isComplete = false;
             do
             {
@@ -215,7 +221,7 @@ namespace ainewsroom
                     await chat.ResetAsync();
                     Console.WriteLine("[Conversation has been reset]");
                     continue;
-                }  
+                }
 
                 if (input.Equals("CHATHISTORY", StringComparison.OrdinalIgnoreCase))
                 {
@@ -245,7 +251,7 @@ namespace ainewsroom
                     string html = await templateService.RenderNewspaperAsync(researchResult, techResult, editorialResult);
 
                     // Generate the report
-                    var path = await ReportCreator.GenerateReport(html,chat);
+                    var path = await ReportCreator.GenerateReport(html, chat);
                     Console.WriteLine($"[REPORT has been generated] - {path.reportPath} ");
                     Console.WriteLine($"[History has been exported] - {path.historyPath} ");
                     continue;
@@ -266,14 +272,14 @@ namespace ainewsroom
                         IAgentResult reportobject = author switch
                         {
 
-                            "ResearchAnalystAgent" => JsonSerializer.Deserialize<ResearchAnalystResultModel>(response.Content)!,
-                            "EditorialWriterAgent" => JsonSerializer.Deserialize<EditorialWriterResultModel>(response.Content)!,
-                            "TechJournalistAgent" => JsonSerializer.Deserialize<TechJournalistResultModel>(response.Content)!,
+                            "Research-Analyst-Agent" => JsonSerializer.Deserialize<ResearchAnalystResultModel>(response.Content)!,
+                            "Editorial-Writer-Agent" => JsonSerializer.Deserialize<EditorialWriterResultModel>(response.Content)!,
+                            "Tech-Journalist-Agent" => JsonSerializer.Deserialize<TechJournalistResultModel>(response.Content)!,
                             _ => throw new NotImplementedException()
                         };
-                            
+
                         reportobjectlist.Add(reportobject);
-                        
+
                     }
                 }
                 catch (HttpOperationException exception)

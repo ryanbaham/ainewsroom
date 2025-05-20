@@ -20,15 +20,15 @@ namespace ainewsroom.Agents
             Agent =
             new()
             {
-                Name = "EditorialWriterAgent",
+                Name = "Editorial-Writer-Agent",
                 Kernel = kernel.Clone(),
                 Arguments = new KernelArguments(
                         new OpenAIPromptExecutionSettings()
                         { 
-                            ServiceId = "openAI",
+                            ServiceId = "openAI_writing",
                             FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
                             ResponseFormat = typeof(EditorialWriterResultModel),
-                            ReasoningEffort = "high",
+                            //ReasoningEffort = "high",
 
                         }),
                 Description = "Writes editorial opinion for the AI newsroom. Utilizes the work of the analysts and journalists in the newsroom.",
